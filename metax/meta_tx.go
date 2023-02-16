@@ -72,19 +72,19 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
 	var resp MetaTxResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*MetaTxResponse)
-        if !ok {
-            return nil, fmt.Errorf("MetaAPI failed")
-        }
-        if resp.TxHash == common.HexToHash("0x0") {
-            err := fmt.Errorf("%v", resp)
-            b.logger.WithError(err).Error("TxHash is 0x0")
-            return nil, err
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*MetaTxResponse)
+		if !ok {
+			return nil, fmt.Errorf("MetaAPI failed")
+		}
+		if resp.TxHash == common.HexToHash("0x0") {
+			err := fmt.Errorf("%v", resp)
+			b.logger.WithError(err).Error("TxHash is 0x0")
+			return nil, err
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

@@ -1,9 +1,9 @@
 package metax
 
 import (
-    "fmt"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -58,14 +58,14 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp AddDestinationResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*AddDestinationResponse)
-        if !ok {
-            return nil, fmt.Errorf("AddDestination failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*AddDestinationResponse)
+		if !ok {
+			return nil, fmt.Errorf("AddDestination failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -88,14 +88,14 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp ProxyContractsResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*ProxyContractsResponse)
-        if !ok {
-            return nil, fmt.Errorf("AddProxyContracts failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*ProxyContractsResponse)
+		if !ok {
+			return nil, fmt.Errorf("AddProxyContracts failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -118,14 +118,14 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp ProxyContractsResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*ProxyContractsResponse)
-        if !ok {
-            return nil, fmt.Errorf("PatchProxyContracts failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*ProxyContractsResponse)
+		if !ok {
+			return nil, fmt.Errorf("PatchProxyContracts failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -142,14 +142,14 @@ func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
 	}
 	req.Header.Set("Authorization", b.GetAuthorization())
 	var resp GetProxyContractsResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*GetProxyContractsResponse)
-        if !ok {
-            return nil, fmt.Errorf("GetProxyContracts failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*GetProxyContractsResponse)
+		if !ok {
+			return nil, fmt.Errorf("GetProxyContracts failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

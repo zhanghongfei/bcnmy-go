@@ -1,7 +1,7 @@
 package metax
 
 import (
-    "fmt"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -70,14 +70,14 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp UniqueUserDataResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*UniqueUserDataResponse)
-        if !ok {
-            return nil, fmt.Errorf("UniqueUserData failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*UniqueUserDataResponse)
+		if !ok {
+			return nil, fmt.Errorf("UniqueUserData failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -100,14 +100,14 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp UserLimitResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*UserLimitResponse)
-        if !ok {
-            return nil, fmt.Errorf("UserLimit failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*UserLimitResponse)
+		if !ok {
+			return nil, fmt.Errorf("UserLimit failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -126,14 +126,14 @@ func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp GasTankBalanceResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*GasTankBalanceResponse)
-        if !ok {
-            return nil, fmt.Errorf("UniqueUserData failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*GasTankBalanceResponse)
+		if !ok {
+			return nil, fmt.Errorf("UniqueUserData failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

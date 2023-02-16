@@ -47,19 +47,19 @@ func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
 	var resp MetaAPIResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*MetaAPIResponse)
-        if !ok {
-            return nil, fmt.Errorf("MetaAPI failed")
-        }
-        if resp.Flag != 143 {
-            err := fmt.Errorf("%v", resp)
-            b.logger.WithError(err).Error(resp.Log)
-            return nil, err
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*MetaAPIResponse)
+		if !ok {
+			return nil, fmt.Errorf("MetaAPI failed")
+		}
+		if resp.Flag != 143 {
+			err := fmt.Errorf("%v", resp)
+			b.logger.WithError(err).Error(resp.Log)
+			return nil, err
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

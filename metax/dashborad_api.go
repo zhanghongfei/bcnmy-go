@@ -1,8 +1,8 @@
 package metax
 
 import (
-    "fmt"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/big"
 	"net/http"
@@ -86,14 +86,14 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 	req.Header.Set("authToken", b.authToken)
 
 	var resp CreateDappResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*CreateDappResponse)
-        if !ok {
-            return nil, fmt.Errorf("CreateDappResponse failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*CreateDappResponse)
+		if !ok {
+			return nil, fmt.Errorf("CreateDappResponse failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -120,14 +120,14 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp GeneralResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*GeneralResponse)
-        if !ok {
-            return nil, fmt.Errorf("AddContract failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*GeneralResponse)
+		if !ok {
+			return nil, fmt.Errorf("AddContract failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -153,14 +153,14 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
 	var resp AddMethodResponse
-    b.asyncHttpx(req, &resp, errorCh, responseCh)
+	b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-    case ret := <-responseCh:
-        resp, ok := ret.(*AddMethodResponse)
-        if !ok {
-            return nil, fmt.Errorf("AddMethod failed")
-        }
-        return resp, nil
+	case ret := <-responseCh:
+		resp, ok := ret.(*AddMethodResponse)
+		if !ok {
+			return nil, fmt.Errorf("AddMethod failed")
+		}
+		return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

@@ -1,9 +1,9 @@
 package metax
 
 import (
-    "encoding/json"
-    "io"
-    "net/http"
+	"encoding/json"
+	"io"
+	"net/http"
 )
 
 func (b *Bcnmy) asyncHttpx(req *http.Request, resp interface{}, errorCh chan error, responseCh chan interface{}) {
