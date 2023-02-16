@@ -2,9 +2,7 @@ package metax
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -39,7 +37,7 @@ type MetaTxLimit struct {
 }
 
 func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
-	metaApiCh := make(chan *MetaAPIResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	req, err := http.NewRequest(http.MethodGet, MetaAPIURL, nil)
 	if err != nil {
@@ -48,40 +46,22 @@ func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to MetaAPI failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		data, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret MetaAPIResponse
-		if err := json.Unmarshal(data, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		metaApiCh <- &ret
-	}()
-
-	var resp *MetaAPIResponse
+	var resp MetaAPIResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-metaApiCh:
+    case ret := <-responseCh:
+        resp, ok := ret.(*MetaAPIResponse)
+        if !ok {
+            return nil, fmt.Errorf("MetaAPI failed")
+        }
+        if resp.Flag != 143 {
+            err := fmt.Errorf("%v", resp)
+            b.logger.WithError(err).Error(resp.Log)
+            return nil, err
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
 	}
-	if resp.Flag != 143 {
-		err := fmt.Errorf("%v", resp)
-		b.logger.WithError(err).Error(resp.Log)
-		return nil, err
-	}
-	return resp, nil
 }

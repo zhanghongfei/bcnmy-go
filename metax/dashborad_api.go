@@ -1,6 +1,7 @@
 package metax
 
 import (
+    "fmt"
 	"encoding/json"
 	"io"
 	"math/big"
@@ -70,7 +71,7 @@ type DeleteMethodRequest struct {
 
 func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error) {
 	errorCh := make(chan error)
-	responseCh := make(chan *CreateDappResponse)
+	responseCh := make(chan interface{})
 	body := url.Values{
 		"dappName":             {data.DappName},
 		"networkId":            {data.NetworkId},
@@ -83,32 +84,16 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to CreateDapp failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *CreateDappResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *CreateDappResponse
+
+	var resp CreateDappResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*CreateDappResponse)
+        if !ok {
+            return nil, fmt.Errorf("CreateDappResponse failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -117,7 +102,7 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 
 func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) {
 	errorCh := make(chan error)
-	responseCh := make(chan *GeneralResponse)
+	responseCh := make(chan interface{})
 	body := url.Values{
 		"contractName":        {data.ContractName},
 		"contractAddress":     {data.ContractAddress},
@@ -134,32 +119,15 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to AddContract failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *GeneralResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *GeneralResponse
+	var resp GeneralResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*GeneralResponse)
+        if !ok {
+            return nil, fmt.Errorf("AddContract failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -168,7 +136,7 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 
 func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	errorCh := make(chan error)
-	responseCh := make(chan *AddMethodResponse)
+	responseCh := make(chan interface{})
 	body := url.Values{
 		"apiType":         {data.ApiType},
 		"methodType":      {data.MethodType},
@@ -184,32 +152,15 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to AddMethod failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *AddMethodResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *AddMethodResponse
+	var resp AddMethodResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*AddMethodResponse)
+        if !ok {
+            return nil, fmt.Errorf("AddMethod failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

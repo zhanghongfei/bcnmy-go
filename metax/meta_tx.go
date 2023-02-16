@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math/big"
 	"net/http"
 	"time"
@@ -58,7 +57,7 @@ func (m *MetaTxMessage) TypedData() apitypes.TypedDataMessage {
 }
 
 func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
-	metaTxCh := make(chan *MetaTxResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -72,41 +71,24 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("x-api-key", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to SendMetaTxNative failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *MetaTxResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		metaTxCh <- ret
-	}()
-	var resp *MetaTxResponse
+	var resp MetaTxResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-metaTxCh:
+    case ret := <-responseCh:
+        resp, ok := ret.(*MetaTxResponse)
+        if !ok {
+            return nil, fmt.Errorf("MetaAPI failed")
+        }
+        if resp.TxHash == common.HexToHash("0x0") {
+            err := fmt.Errorf("%v", resp)
+            b.logger.WithError(err).Error("TxHash is 0x0")
+            return nil, err
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
 	}
-	if resp.TxHash == common.HexToHash("0x0") {
-		err := fmt.Errorf("%v", resp)
-		b.logger.WithError(err).Error("TxHash is 0x0")
-		return nil, err
-	}
-	return resp, nil
 }
 
 func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*types.Transaction, error) {

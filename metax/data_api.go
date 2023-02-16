@@ -1,8 +1,7 @@
 package metax
 
 import (
-	"encoding/json"
-	"io"
+    "fmt"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -56,7 +55,7 @@ type GasTankBalanceResponse struct {
 }
 
 func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataResponse, error) {
-	responseCh := make(chan *UniqueUserDataResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body := url.Values{
 		"startDate": {data.StartDate},
@@ -70,32 +69,15 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to GetUniqueUserData failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *UniqueUserDataResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *UniqueUserDataResponse
+	var resp UniqueUserDataResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*UniqueUserDataResponse)
+        if !ok {
+            return nil, fmt.Errorf("UniqueUserData failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -103,7 +85,7 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 }
 
 func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error) {
-	responseCh := make(chan *UserLimitResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body := url.Values{
 		"signerAddress": {data.SignerAddress},
@@ -117,32 +99,15 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to GetUserLimit failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *UserLimitResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *UserLimitResponse
+	var resp UserLimitResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*UserLimitResponse)
+        if !ok {
+            return nil, fmt.Errorf("UserLimit failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -150,7 +115,7 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 }
 
 func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
-	responseCh := make(chan *GasTankBalanceResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	req, err := http.NewRequest(http.MethodGet, UserLimitURL, nil)
 	if err != nil {
@@ -160,32 +125,15 @@ func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("authToken", b.authToken)
 	req.Header.Set("apiKey", b.apiKey)
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to GetGasTankBalance failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *GasTankBalanceResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *GasTankBalanceResponse
+	var resp GasTankBalanceResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*GasTankBalanceResponse)
+        if !ok {
+            return nil, fmt.Errorf("UniqueUserData failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err

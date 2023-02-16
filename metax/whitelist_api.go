@@ -1,9 +1,9 @@
 package metax
 
 import (
+    "fmt"
 	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -43,7 +43,7 @@ type PatchProxyContractsRequest struct {
 }
 
 func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestinationResponse, error) {
-	responseCh := make(chan *AddDestinationResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -57,32 +57,15 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to AddDestinationAddresses failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *AddDestinationResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *AddDestinationResponse
+	var resp AddDestinationResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*AddDestinationResponse)
+        if !ok {
+            return nil, fmt.Errorf("AddDestination failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -90,7 +73,7 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 }
 
 func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContractsResponse, error) {
-	responseCh := make(chan *ProxyContractsResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -104,32 +87,15 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to AddProxyContracts failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *ProxyContractsResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *ProxyContractsResponse
+	var resp ProxyContractsResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*ProxyContractsResponse)
+        if !ok {
+            return nil, fmt.Errorf("AddProxyContracts failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -137,7 +103,7 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 }
 
 func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyContractsResponse, error) {
-	responseCh := make(chan *ProxyContractsResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	body, err := json.Marshal(data)
 	if err != nil {
@@ -151,32 +117,15 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", b.GetAuthorization())
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to PatchProxyContracts failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *ProxyContractsResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *ProxyContractsResponse
+	var resp ProxyContractsResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*ProxyContractsResponse)
+        if !ok {
+            return nil, fmt.Errorf("PatchProxyContracts failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
@@ -184,7 +133,7 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 }
 
 func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
-	responseCh := make(chan *GetProxyContractsResponse, 1)
+	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
 	req, err := http.NewRequest(http.MethodGet, ProxyContractsURL, nil)
 	if err != nil {
@@ -192,32 +141,15 @@ func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
 		return nil, err
 	}
 	req.Header.Set("Authorization", b.GetAuthorization())
-	go func() {
-		res, err := b.httpClient.Do(req)
-		if err != nil {
-			b.logger.WithError(err).Error("HttpClient request to GetProxyContracts failed")
-			errorCh <- err
-			return
-		}
-		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.logger.WithError(err).Error("io read request body failed")
-			errorCh <- err
-			return
-		}
-		var ret *GetProxyContractsResponse
-		if err := json.Unmarshal(replyData, &ret); err != nil {
-			b.logger.WithError(err).Error("json unmarshal body data failed")
-			errorCh <- err
-			return
-		}
-		responseCh <- ret
-	}()
-	var resp *GetProxyContractsResponse
+	var resp GetProxyContractsResponse
+    b.asyncHttpx(req, &resp, errorCh, responseCh)
 	select {
-	case resp = <-responseCh:
-		return resp, nil
+    case ret := <-responseCh:
+        resp, ok := ret.(*GetProxyContractsResponse)
+        if !ok {
+            return nil, fmt.Errorf("GetProxyContracts failed")
+        }
+        return resp, nil
 	case err := <-errorCh:
 		b.logger.WithError(err).Error(err.Error())
 		return nil, err
