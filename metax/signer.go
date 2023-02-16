@@ -23,7 +23,7 @@ func NewSigner(privKey string) (*Signer, error) {
 	return &Signer{
 		key:     key,
 		Address: crypto.PubkeyToAddress(key.PublicKey),
-	}
+	}, nil
 }
 
 func NewSignerFromPath(privPath string) (*Signer, error) {
@@ -39,11 +39,11 @@ func (s *Signer) GetPublicKey() []byte {
 }
 
 func (s *Signer) SignTypedData(typedData apitypes.TypedData) ([]byte, error) {
-	hashData, rawData, err := apitypes.TypedDataAndHash(typedData)
+	hashBytes, _, err := apitypes.TypedDataAndHash(typedData)
 	if err != nil {
 		return nil, err
 	}
-	sig, err := crypto.Sign(hash, s.key)
+	sig, err := crypto.Sign(hashBytes, s.key)
 	if err != nil {
 		return nil, err
 	}

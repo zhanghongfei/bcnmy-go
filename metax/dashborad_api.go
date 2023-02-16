@@ -1,14 +1,13 @@
 package metax
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"math/big"
 	"net/http"
-
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	"net/url"
+	"strconv"
+	"strings"
 )
 
 type GeneralResponse struct {
@@ -24,25 +23,29 @@ type CreateDappRequest struct {
 }
 
 type CreateDappResponse struct {
-	ApiKey     string   `json:"apiKey"`
-	fundingKey *big.Int `json:"fundingKey"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    struct {
+		ApiKey     string   `json:"apiKey"`
+		FundingKey *big.Int `json:"fundingKey"`
+	} `json:"data"`
 }
 
 type AddContractRequest struct {
-	ContractName        string         `json:"contractName"`
-	ContractAddress     common.Address `json:"contractAddress"`
-	ContractType        string         `json:"contractType"`        // SCW for contract wallet or SC for contract
-	WalletType          string         `json:"walletType"`          // SCW or GNOSIS or blank
-	MetaTransactionType string         `json:"metaTransactionType"` // DEFAULT, TRUSTED_FORWARDER, ERC20_FORWARDER
-	ABI                 abi.ABI        `json:"abi"`
+	ContractName        string `json:"contractName"`
+	ContractAddress     string `json:"contractAddress"`
+	ContractType        string `json:"contractType"`        // SCW for contract wallet or SC for contract
+	WalletType          string `json:"walletType"`          // SCW or GNOSIS or blank
+	MetaTransactionType string `json:"metaTransactionType"` // DEFAULT, TRUSTED_FORWARDER, ERC20_FORWARDER
+	ABI                 string `json:"abi"`
 }
 
 type AddMethodRequest struct {
-	ApiType         string         `json:"apiType"`
-	MethodType      string         `json:"methodType"`
-	Name            string         `json:"name"`
-	ContractAddress common.Address `json:"contractAddress"`
-	Method          string         `json:"method"`
+	ApiType         string `json:"apiType"`
+	MethodType      string `json:"methodType"`
+	Name            string `json:"name"`
+	ContractAddress string `json:"contractAddress"`
+	Method          string `json:"method"`
 }
 
 type AddMethodResponse struct {
@@ -55,15 +58,25 @@ type AddMethodResponse struct {
 	} `json:"apiIds"`
 }
 
+type DeleteContractRequest struct {
+	ContractAddress string `json:"contractAddress"`
+	ContractType    string `json:"contractType"` // SCW for contract wallet or SC for contract
+}
+
+type DeleteMethodRequest struct {
+	ContractAddress string `json:"contractAddress"`
+	Method          string `json:"method"`
+}
+
 func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error) {
 	errorCh := make(chan error)
 	responseCh := make(chan *CreateDappResponse)
-	body, err := json.Marshal(data)
-	if err != nil {
-		b.logger.WithError(err).Error("json marshal `CreateDappRequest` data failed")
-		return nil, err
+	body := url.Values{
+		"dappName":             {data.DappName},
+		"networkId":            {data.NetworkId},
+		"enableBiconomyWallet": {strconv.FormatBool(data.EnableBiconomyWallet)},
 	}
-	req, err := http.NewRequest(http.MethodPost, CreateDappPublicURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, CreateDappPublicURL, strings.NewReader(body.Encode()))
 	if err != nil {
 		b.logger.WithError(err).Error("CreateDapp NewRequest failed")
 		return nil, err
@@ -90,7 +103,7 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 			errorCh <- err
 			return
 		}
-		responseCh <- &ret
+		responseCh <- ret
 	}()
 	var resp *CreateDappResponse
 	select {
@@ -105,12 +118,15 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) {
 	errorCh := make(chan error)
 	responseCh := make(chan *GeneralResponse)
-	body, err := json.Marshal(data)
-	if err != nil {
-		b.logger.WithError(err).Error("json marshal `AddContractRequest` data failed")
-		return nil, err
+	body := url.Values{
+		"contractName":        {data.ContractName},
+		"contractAddress":     {data.ContractAddress},
+		"contractType":        {data.ContractType},
+		"walletType":          {data.WalletType},
+		"metaTransactionType": {data.MetaTransactionType},
+		"abi":                 {data.ABI},
 	}
-	req, err := http.NewRequest(http.MethodPost, AddContractURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, AddContractURL, strings.NewReader(body.Encode()))
 	if err != nil {
 		b.logger.WithError(err).Error("AddContract NewRequest failed")
 		return nil, err
@@ -138,7 +154,7 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 			errorCh <- err
 			return
 		}
-		responseCh <- &ret
+		responseCh <- ret
 	}()
 	var resp *GeneralResponse
 	select {
@@ -153,12 +169,14 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	errorCh := make(chan error)
 	responseCh := make(chan *AddMethodResponse)
-	body, err := json.Marshal(data)
-	if err != nil {
-		b.logger.WithError(err).Error("json marshal `AddMethodRequest` data failed")
-		return nil, err
+	body := url.Values{
+		"apiType":         {data.ApiType},
+		"methodType":      {data.MethodType},
+		"name":            {data.Name},
+		"contractAddress": {data.ContractAddress},
+		"method":          {data.Method},
 	}
-	req, err := http.NewRequest(http.MethodPost, AddMethodURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, AddMethodURL, strings.NewReader(body.Encode()))
 	if err != nil {
 		b.logger.WithError(err).Error("AddMethod NewRequest failed")
 		return nil, err
@@ -186,7 +204,7 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 			errorCh <- err
 			return
 		}
-		responseCh <- &ret
+		responseCh <- ret
 	}()
 	var resp *AddMethodResponse
 	select {
@@ -199,12 +217,11 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 }
 
 func (b *Bcnmy) DeleteContract(data *DeleteContractRequest) (*GeneralResponse, error) {
-	body, err := json.Marshal(data)
-	if err != nil {
-		b.logger.WithError(err).Error("json marshal `DeleteContract` data failed")
-		return nil, err
+	body := url.Values{
+		"contractAddress": {data.ContractAddress},
+		"contractType":    {data.ContractType},
 	}
-	req, err := http.NewRequest(http.MethodDelete, DeleteContractURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodDelete, DeleteContractURL, strings.NewReader(body.Encode()))
 	if err != nil {
 		b.logger.WithError(err).Error("DeleteContract NewRequest failed")
 		return nil, err
@@ -229,12 +246,11 @@ func (b *Bcnmy) DeleteContract(data *DeleteContractRequest) (*GeneralResponse, e
 }
 
 func (b *Bcnmy) DeleteMethod(data *DeleteMethodRequest) (*GeneralResponse, error) {
-	body, err := json.Marshal(data)
-	if err != nil {
-		b.logger.WithError(err).Error("json marshal `DeleteMethod` data failed")
-		return nil, err
+	body := url.Values{
+		"contractAddress": {data.ContractAddress},
+		"method":          {data.Method},
 	}
-	req, err := http.NewRequest(http.MethodDelete, DeleteMethodURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodDelete, DeleteMethodURL, strings.NewReader(body.Encode()))
 	if err != nil {
 		b.logger.WithError(err).Error("DeleteMethod NewRequest failed")
 		return nil, err

@@ -6,13 +6,14 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 
-	"github.com/oblzh/bcnmy-go/forwarder"
+	"github.com/oblzh/bcnmy-go/abi/forwarder"
 )
 
 type Bcnmy struct {
@@ -29,10 +30,13 @@ type Bcnmy struct {
 	authToken string
 	apiKey    string
 	/// method apiID
-	apiID map[string]string
+	apiID map[string]struct {
+		ID              string
+		ContractAddress string
+	}
 
-	chainID *big.Int
-	batchID *big.Int
+	batchId *big.Int
+	chainId *big.Int
 
 	trustedForwarder struct {
 		Address  common.Address
@@ -43,27 +47,30 @@ type Bcnmy struct {
 func NewBcnmy(httpRpc string, apiKey string) (*Bcnmy, error) {
 	var err error
 	bcnmy := &Bcnmy{
-		ctx:        context.Background(),
-		logger:     logrus.WithField("metax", "bcnmy"),
-		apiKey:     apiKey,
-		apiID:      make(map[string]string),
-		batchID:    big.NewInt(0),
-		httpClient: &http.Client{},
+		ctx:    context.Background(),
+		logger: logrus.WithField("metax", "bcnmy"),
+		apiKey: apiKey,
+		apiID: make(map[string]struct {
+			ID              string
+			ContractAddress string
+		}),
+		batchId:    big.NewInt(0),
+		httpClient: &http.Client{Timeout: 10 * time.Second},
 	}
 	bcnmy.ethClient, err = ethclient.DialContext(bcnmy.ctx, httpRpc)
 	if err != nil {
 		bcnmy.logger.WithError(err).Error("DialContext ethclient failed")
 		return nil, err
 	}
-	bcnmy.chainID, err = bcnmy.ethClient.ChainID(bcnmy.ctx)
+	bcnmy.chainId, err = bcnmy.ethClient.ChainID(bcnmy.ctx)
 	if err != nil {
-		bcnmy.logger.WithError(err).Error("ethClient getChainID failed")
+		bcnmy.logger.WithError(err).Error("ethClient getchainId failed")
 		return nil, err
 	}
 
-	forwarderAddress, ok := ForwarderAddressMap[bcnmy.chainID.String()]
+	forwarderAddress, ok := ForwarderAddressMap[bcnmy.chainId.String()]
 	if !ok {
-		err = fmt.Errorf("Chain ID not supported: %v", bcnmy.chainID)
+		err = fmt.Errorf("Chain ID not supported: %v", bcnmy.chainId)
 		bcnmy.logger.Error(err.Error())
 		return nil, err
 	}
@@ -89,7 +96,13 @@ func NewBcnmy(httpRpc string, apiKey string) (*Bcnmy, error) {
 	for _, info := range resp.ListAPI {
 		// filter non contractAddress
 		if common.IsHexAddress(info.ContractAddress) {
-			bcnmy.apiID[info.Method] = info.ID
+			bcnmy.apiID[info.Method] = struct {
+				ID              string
+				ContractAddress string
+			}{
+				ID:              info.ID,
+				ContractAddress: info.ContractAddress,
+			}
 		}
 	}
 	return bcnmy, nil
@@ -109,4 +122,8 @@ func (b *Bcnmy) WithDapp(jsonABI string, dappAddress common.Address) (*Bcnmy, er
 func (b *Bcnmy) WithAuthToken(authToken string) *Bcnmy {
 	b.authToken = authToken
 	return b
+}
+
+func (b *Bcnmy) GetAuthorization() string {
+	return fmt.Sprintf("User %s", b.authToken)
 }

@@ -2,14 +2,15 @@ package metax
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/big"
 	"net/http"
 	"time"
 
 	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -29,11 +30,11 @@ type MetaTxMessage struct {
 }
 
 type MetaTxRequest struct {
-	From          string                 `json:"from"`
-	To            string                 `json:"to"`
-	ApiID         string                 `json:"apiId"`
-	Params        map[string]interface{} `json:"params"`
-	SignatureType string                 `json:"signatureType"`
+	From          string        `json:"from"`
+	To            string        `json:"to"`
+	ApiID         string        `json:"apiId"`
+	Params        []interface{} `json:"params"`
+	SignatureType string        `json:"signatureType"`
 }
 
 type MetaTxResponse struct {
@@ -91,7 +92,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 			errorCh <- err
 			return
 		}
-		metaTxCh <- &ret
+		metaTxCh <- ret
 	}()
 	var resp *MetaTxResponse
 	select {
@@ -101,7 +102,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 		return nil, err
 	}
 	if resp.TxHash == common.HexToHash("0x0") {
-		err := fmt.Errorf("%s", resp)
+		err := fmt.Errorf("%v", resp)
 		b.logger.WithError(err).Error("TxHash is 0x0")
 		return nil, err
 	}
@@ -111,22 +112,22 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*types.Transaction, error) {
 	apiId, ok := b.apiID[method]
 	if !ok {
-		err := fmt.Errorf("ApiId not found for %s", method)
+		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
 		return nil, err
 	}
-	data, err := b.abi.Pack(method, params...)
+	funcSig, err := b.abi.Pack(method, params...)
 	if err != nil {
 		b.logger.WithError(err).Error("Abi Pack failed")
 		return nil, err
 	}
 
-	callMsg, err := ethereum.CallMsg{
+	callMsg := ethereum.CallMsg{
 		From: signer.Address,
 		To:   &b.address,
-		Data: data,
+		Data: funcSig,
 	}
-	callOpts = bind.CallOpts{
+	callOpts := bind.CallOpts{
 		Context: b.ctx,
 		From:    signer.Address,
 	}
@@ -135,7 +136,7 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		b.logger.WithError(err).Error("EstimateGas failed")
 		return nil, err
 	}
-	batchNonce, err := b.trustedForwarder.Contract.GetNonce(callOpts, account.Address, b.batchId)
+	batchNonce, err := b.trustedForwarder.Contract.GetNonce(&callOpts, signer.Address, b.batchId)
 	if err != nil {
 		b.logger.WithError(err).Errorf("GetNonce from %s failed", b.batchId)
 		return nil, err
@@ -150,17 +151,17 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		BatchId:       b.batchId,
 		BatchNonce:    batchNonce,
 		Deadline:      big.NewInt(time.Now().Add(time.Hour).Unix()),
-		Data:          hexutil.Encode(data),
+		Data:          hexutil.Encode(funcSig),
 	}
 
 	typedData := apitypes.TypedData{
-		Type:        SignedTypes,
+		Types:       SignedTypes,
 		PrimaryType: ForwardRequestType,
 		Domain: apitypes.TypedDataDomain{
 			Name:              ForwardRequestName,
 			Version:           Version,
-			VerifyingContract: b.address.Hex(),
-			Salt:              hexutil.Encode(common.LeftPadBytes(m.chainID.Bytes(), 32)),
+			VerifyingContract: b.trustedForwarder.Address.Hex(),
+			Salt:              hexutil.Encode(common.LeftPadBytes(b.chainId.Bytes(), 32)),
 		},
 		Message: metaTxMessage.TypedData(),
 	}
@@ -170,7 +171,7 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		return nil, err
 	}
 
-	domainSeparator, err := typedData.HashStruct(EIP712DoaminType, typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
 		return nil, err
@@ -179,13 +180,13 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	req := &MetaTxRequest{
 		From:  signer.Address.Hex(),
 		To:    b.address.Hex(),
-		ApiID: b.apiId,
+		ApiID: apiId.ID,
 		Params: []interface{}{
 			metaTxMessage,
 			hexutil.Encode(domainSeparator),
 			hexutil.Encode(signature),
 		},
-		SignatureType: SignatureTypeEIP712,
+		SignatureType: SignatureEIP712Type,
 	}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
@@ -198,15 +199,21 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 
 // / Backend using this method, handle frontend passing signature, MetaTxMessage and
 // / ForwardRequestType data Hash value
-func (b *Bcnmy) EnhanceTransact(signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, error) {
+func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, error) {
+	apiId, ok := b.apiID[method]
+	if !ok {
+		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
+		b.logger.Error(err.Error())
+		return nil, err
+	}
 	typedData := apitypes.TypedData{
-		Type:        SignedTypes,
+		Types:       SignedTypes,
 		PrimaryType: ForwardRequestType,
 		Domain: apitypes.TypedDataDomain{
 			Name:              ForwardRequestName,
 			Version:           Version,
-			VerifyingContract: b.address.Hex(),
-			Salt:              hexutil.Encode(common.LeftPadBytes(m.chainID.Bytes(), 32)),
+			VerifyingContract: b.trustedForwarder.Address.Hex(),
+			Salt:              hexutil.Encode(common.LeftPadBytes(b.chainId.Bytes(), 32)),
 		},
 		Message: metaTxMessage.TypedData(),
 	}
@@ -221,22 +228,22 @@ func (b *Bcnmy) EnhanceTransact(signature []byte, metaTxMessage *MetaTxMessage, 
 		return nil, err
 	}
 
-	domainSeparator, err := typedData.HashStruct(EIP712DoaminType, typedData.Domain.Map())
+	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
 		return nil, err
 	}
 
 	req := &MetaTxRequest{
-		From:  signer.Address.Hex(),
+		From:  from,
 		To:    b.address.Hex(),
-		ApiID: b.apiId,
+		ApiID: apiId.ID,
 		Params: []interface{}{
 			metaTxMessage,
 			hexutil.Encode(domainSeparator),
 			hexutil.Encode(signature),
 		},
-		SignatureType: SignatureTypeEIP712,
+		SignatureType: SignatureEIP712Type,
 	}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
@@ -245,4 +252,13 @@ func (b *Bcnmy) EnhanceTransact(signature []byte, metaTxMessage *MetaTxMessage, 
 	}
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 	return tx, err
+}
+
+func (b *Bcnmy) Pack(method string, params ...interface{}) ([]byte, error) {
+	data, err := b.abi.Pack(method, params...)
+	if err != nil {
+		b.logger.WithError(err).Error("Abi Pack failed")
+		return nil, err
+	}
+	return data, err
 }

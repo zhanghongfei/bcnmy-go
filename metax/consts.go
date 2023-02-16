@@ -6,13 +6,18 @@ import (
 )
 
 const (
-	MetaAPIURL          = "https://api.biconomy.io/api/v1/meta-api"
-	MetaTxNativeURL     = "https://api.biconomy.io/api/v2/meta-tx/native"
-	CreateDappPublicURL = "https://api.biconomy.io/api/v1/dapp/public-api/create-dapp"
-	AddContractURL      = "https://api.biconomy.io/api/v1/smart-contract/public-api/addContract"
-	AddMethodURL        = "https://api.biconomy.io/api/v1/meta-api/public-api/addMethod"
-	DeleteContractURL   = "https://api.biconomy.io/api/v1/smart-contract/public-api/deleteContract"
-	DeleteMethodURL     = "https://api.biconomy.io/api/v1/meta-api/public-api/deleteMethod"
+	MetaAPIURL                 = "https://api.biconomy.io/api/v1/meta-api"
+	MetaTxNativeURL            = "https://api.biconomy.io/api/v2/meta-tx/native"
+	CreateDappPublicURL        = "https://api.biconomy.io/api/v1/dapp/public-api/create-dapp"
+	AddContractURL             = "https://api.biconomy.io/api/v1/smart-contract/public-api/addContract"
+	AddMethodURL               = "https://api.biconomy.io/api/v1/meta-api/public-api/addMethod"
+	DeleteContractURL          = "https://api.biconomy.io/api/v1/smart-contract/public-api/deleteContract"
+	DeleteMethodURL            = "https://api.biconomy.io/api/v1/meta-api/public-api/deleteMethod"
+	AddDestinationAddressesURL = "https://api.biconomy.io/api/v1/dapp/whitelist/destination"
+	ProxyContractsURL          = "https://api.biconomy.io/api/v1/dapp/whitelist/proxy-contracts"
+	UniqueUserDataURL          = "https://data.biconomy.io/api/v1/dapp/uniqueUserData"
+	UserLimitURL               = "https://data.biconomy.io/api/v1/dapp/user-limit"
+	GasTankBalanceURL          = "https://data.biconomy.io/api/v1/dapp/gas-tank-balance"
 )
 
 const (
@@ -30,7 +35,7 @@ var SignedTypes = apitypes.Types{
 		{Name: "verifyingContract", Type: "address"},
 		{Name: "salt", Type: "bytes32"},
 	},
-	"ForwardRequest": []apitypes.Type{
+	"ERC20ForwardRequest": []apitypes.Type{
 		{Name: "from", Type: "address"},
 		{Name: "to", Type: "address"},
 		{Name: "token", Type: "address"},
