@@ -2,6 +2,7 @@ package metax
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -91,17 +92,17 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	}
 }
 
-func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*types.Transaction, error) {
+func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*types.Transaction, *types.Receipt, error) {
 	apiId, ok := b.apiID[method]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 	funcSig, err := b.abi.Pack(method, params...)
 	if err != nil {
 		b.logger.WithError(err).Error("Abi Pack failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	callMsg := ethereum.CallMsg{
@@ -116,12 +117,12 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	estimateGas, err := b.ethClient.EstimateGas(b.ctx, callMsg)
 	if err != nil {
 		b.logger.WithError(err).Error("EstimateGas failed")
-		return nil, err
+		return nil, nil, err
 	}
 	batchNonce, err := b.trustedForwarder.Contract.GetNonce(&callOpts, signer.Address, b.batchId)
 	if err != nil {
 		b.logger.WithError(err).Errorf("GetNonce from %s failed", b.batchId)
-		return nil, err
+		return nil, nil, err
 	}
 
 	metaTxMessage := &MetaTxMessage{
@@ -150,13 +151,13 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	signature, err := signer.SignTypedData(typedData)
 	if err != nil {
 		b.logger.WithError(err).Error("Signer signTypeData failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	req := &MetaTxRequest{
@@ -173,20 +174,26 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
 		b.logger.WithError(err).Errorf("Transaction failed: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
+
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
-	return tx, err
+	if err != nil {
+		b.logger.WithError(err).Errorf("Checking TransactionByHash failed: %v", err)
+		return nil, nil, err
+	}
+	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
+	return tx, receipt, err
 }
 
 // / Backend using this method, handle frontend passing signature, MetaTxMessage and
 // / ForwardRequestType data Hash value
-func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, error) {
+func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, *types.Receipt, error) {
 	apiId, ok := b.apiID[method]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 	typedData := apitypes.TypedData{
 		Types:       SignedTypes,
@@ -202,18 +209,18 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	hash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
 		b.logger.WithError(err).Errorf("HashStruct failed to hash typedData, %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	if hash.String() != typedDataHash {
 		err := fmt.Errorf("Hash string not match parameter typedDataHash %s", typedDataHash)
 		b.logger.WithError(err).Errorf("%v", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
-		return nil, err
+		return nil, nil, err
 	}
 
 	req := &MetaTxRequest{
@@ -230,10 +237,16 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
 		b.logger.WithError(err).Errorf("Transaction failed: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
+
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
-	return tx, err
+	if err != nil {
+		b.logger.WithError(err).Errorf("Checking TransactionByHash failed: %v", err)
+		return nil, nil, err
+	}
+	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
+	return tx, receipt, err
 }
 
 func (b *Bcnmy) Pack(method string, params ...interface{}) ([]byte, error) {
