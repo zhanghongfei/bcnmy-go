@@ -124,6 +124,11 @@ func (b *Bcnmy) WithAuthToken(authToken string) *Bcnmy {
 	return b
 }
 
+func (b *Bcnmy) WithFieldTimeout(timeout time.Duration) *Bcnmy {
+	b.httpClient = &http.Client{Timeout: timeout}
+	return b
+}
+
 func (b *Bcnmy) GetAuthorization() string {
 	return fmt.Sprintf("User %s", b.authToken)
 }
