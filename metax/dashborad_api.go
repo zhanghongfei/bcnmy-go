@@ -103,6 +103,9 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) {
 	errorCh := make(chan error)
 	responseCh := make(chan interface{})
+	defer close(errorCh)
+	defer close(responseCh)
+
 	body := url.Values{
 		"contractName":        {data.ContractName},
 		"contractAddress":     {data.ContractAddress},
@@ -137,6 +140,9 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 	errorCh := make(chan error)
 	responseCh := make(chan interface{})
+	defer close(errorCh)
+	defer close(responseCh)
+
 	body := url.Values{
 		"apiType":         {data.ApiType},
 		"methodType":      {data.MethodType},

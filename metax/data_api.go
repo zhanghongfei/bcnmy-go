@@ -57,6 +57,9 @@ type GasTankBalanceResponse struct {
 func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataResponse, error) {
 	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
+	defer close(errorCh)
+	defer close(responseCh)
+
 	body := url.Values{
 		"startDate": {data.StartDate},
 		"endDate":   {data.EndDate},
@@ -87,6 +90,9 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error) {
 	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
+	defer close(errorCh)
+	defer close(responseCh)
+
 	body := url.Values{
 		"signerAddress": {data.SignerAddress},
 		"apiId":         {data.ApiId},
@@ -117,6 +123,9 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
 	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
+	defer close(errorCh)
+	defer close(responseCh)
+
 	req, err := http.NewRequest(http.MethodGet, UserLimitURL, nil)
 	if err != nil {
 		b.logger.WithError(err).Error("GetGasTankBalance NewRequest failed")

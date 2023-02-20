@@ -60,6 +60,9 @@ func (m *MetaTxMessage) TypedData() apitypes.TypedDataMessage {
 func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	responseCh := make(chan interface{}, 1)
 	errorCh := make(chan error)
+	defer close(errorCh)
+	defer close(responseCh)
+
 	body, err := json.Marshal(data)
 	if err != nil {
 		b.logger.WithError(err).Error("json marshal `MetaTxRequest` data failed")
