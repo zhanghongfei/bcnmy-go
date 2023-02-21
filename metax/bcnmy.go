@@ -44,7 +44,7 @@ type Bcnmy struct {
 	}
 }
 
-func NewBcnmy(httpRpc string, apiKey string) (*Bcnmy, error) {
+func NewBcnmy(httpRpc string, apiKey string, timeout time.Duration) (*Bcnmy, error) {
 	var err error
 	bcnmy := &Bcnmy{
 		ctx:    context.Background(),
@@ -55,7 +55,7 @@ func NewBcnmy(httpRpc string, apiKey string) (*Bcnmy, error) {
 			ContractAddress string
 		}),
 		batchId:    big.NewInt(0),
-		httpClient: &http.Client{Timeout: 10 * time.Second},
+		httpClient: &http.Client{Timeout: timeout},
 	}
 	bcnmy.ethClient, err = ethclient.DialContext(bcnmy.ctx, httpRpc)
 	if err != nil {

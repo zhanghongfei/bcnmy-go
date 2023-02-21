@@ -14,7 +14,7 @@ import (
 )
 
 func buildBcnmy() *metax.Bcnmy {
-	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"))
+	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"), time.Second*10)
 	b = b.WithAuthToken(os.Getenv("authToken"))
 	b = b.WithFieldTimeout(time.Second * 60)
 	return b

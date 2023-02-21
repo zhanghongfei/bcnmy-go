@@ -2,6 +2,9 @@
 
 ## CHANGELOG
 
+### 2023-02-21
+1. Add `timeout` parameter in `NewBcnmy`
+
 ### 2023-02-20
 1. Add `defer close channel` to response channel and error channel.
 

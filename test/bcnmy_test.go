@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func buildBcnmy() *metax.Bcnmy {
-	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"))
+	b, _ := metax.NewBcnmy(os.Getenv("httpRpc"), os.Getenv("apiKey"), 10*time.Second)
 	b = b.WithAuthToken(os.Getenv("authToken"))
 	return b
 }
