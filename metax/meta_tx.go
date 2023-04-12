@@ -189,15 +189,7 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	return tx, receipt, err
 }
 
-// / Backend using this method, handle frontend passing signature, MetaTxMessage and
-// / ForwardRequestType data Hash value
-func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, *types.Receipt, error) {
-	apiId, ok := b.apiID[method]
-	if !ok {
-		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
-		b.logger.Error(err.Error())
-		return nil, nil, err
-	}
+func (b *Bcnmy) BuildTransactParams(metaTxMessage *MetaTxMessage, typedDataHash string) ([]byte, error) {
 	typedData := apitypes.TypedData{
 		Types:       SignedTypes,
 		PrimaryType: ForwardRequestType,
@@ -212,20 +204,31 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	hash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
 		b.logger.WithError(err).Errorf("HashStruct failed to hash typedData, %v", err)
-		return nil, nil, err
+		return nil, err
 	}
 	if hash.String() != typedDataHash {
 		err := fmt.Errorf("Hash string not match parameter hash: %s typedDataHash %s", hash.String(), typedDataHash)
 		b.logger.WithError(err).Errorf("%v", err)
-		return nil, nil, err
+		return nil, err
 	}
 
-	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
+	return typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
+}
+
+// / Backend using this method, handle frontend passing signature, MetaTxMessage and
+// / ForwardRequestType data Hash value
+func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, *types.Receipt, error) {
+	apiId, ok := b.apiID[method]
+	if !ok {
+		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
+		b.logger.Error(err.Error())
+		return nil, nil, err
+	}
+	domainSeparator, err := b.BuildTransactParams(metaTxMessage, typedDataHash)
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
 		return nil, nil, err
 	}
-
 	req := &MetaTxRequest{
 		From:  from,
 		To:    b.address.Hex(),
