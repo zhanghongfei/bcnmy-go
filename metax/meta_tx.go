@@ -215,7 +215,7 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		return nil, nil, err
 	}
 	if hash.String() != typedDataHash {
-		err := fmt.Errorf("Hash string not match parameter typedDataHash %s", typedDataHash)
+		err := fmt.Errorf("Hash string not match parameter hash: %s typedDataHash %s", hash.String(), typedDataHash)
 		b.logger.WithError(err).Errorf("%v", err)
 		return nil, nil, err
 	}

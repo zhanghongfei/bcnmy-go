@@ -57,11 +57,11 @@ var ForwarderAddressMap = map[string]common.Address{
 	"56":     common.HexToAddress("0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8"), // BSC mainnet
 	"97":     common.HexToAddress("0x61456BF1715C1415730076BB79ae118E806E74d2"), // Binance testnet
 	"100":    common.HexToAddress("0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8"), // xDai mainnet
-	"137":    common.HexToAddress("0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8"), // Matic mainnet
+	"137":    common.HexToAddress("0xf0511f123164602042ab2bCF02111fA5D3Fe97CD"), // Matic mainnet
 	"250":    common.HexToAddress("0x64CD353384109423a966dCd3Aa30D884C9b2E057"), // Fantom mainnet
 	"1287":   common.HexToAddress("0x3AF14449e18f2c3677bFCB5F954Dc68d5fb74a75"), // Moonbeam alpha testnet
 	"4002":   common.HexToAddress("0x69FB8Dca8067A5D38703b9e8b39cf2D51473E4b4"), // Fantom testnet
-	"80001":  common.HexToAddress("0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b"), // Matic testnet mumbai
+	"80001":  common.HexToAddress("0x69015912AA33720b842dCD6aC059Ed623F28d9f7"), // Matic testnet mumbai
 	"42161":  common.HexToAddress("0xfe0fa3C06d03bDC7fb49c892BbB39113B534fB57"), // Arbitrum mainnet
 	"421611": common.HexToAddress("0x67454E169d613a8e9BA6b06af2D267696EAaAf41"), // Arbitrum test
 
