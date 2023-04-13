@@ -5,11 +5,8 @@ import (
 	"math/big"
 	"testing"
 
-	//ethereum "github.com/ethereum/go-ethereum"
-	//"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	//"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	metax "github.com/oblzh/bcnmy-go/metax"
