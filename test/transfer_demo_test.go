@@ -25,7 +25,7 @@ func buildBcnmy() *metax.Bcnmy {
 	return b
 }
 
-// Finished
+// Finished https://mumbai.polygonscan.com/tx/0x39b3ed93123d9c45583cd6c68c72943fb13c8f72d489deb00b96a02a8fd21745
 func TestTransferDemo(t *testing.T) {
 	b := buildBcnmy()
 	b.WithDapp(demo.TransferDemoABI, common.HexToAddress("0x56B71565F6e7f9dE4c3217A6E5d4133bc7fc67EB"))
