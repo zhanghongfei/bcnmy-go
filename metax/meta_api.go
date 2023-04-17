@@ -64,7 +64,7 @@ func (b *Bcnmy) GetMetaAPI(ctx context.Context) (*MetaAPIResponse, error) {
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }

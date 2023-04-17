@@ -67,7 +67,7 @@ func (b *Bcnmy) AddDestinationAddresses(data *AddDestinationRequest) (*AddDestin
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -97,7 +97,7 @@ func (b *Bcnmy) AddProxyContracts(data *AddProxyContractsRequest) (*ProxyContrac
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -127,7 +127,7 @@ func (b *Bcnmy) PatchProxyContracts(data *PatchProxyContractsRequest) (*ProxyCon
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -151,7 +151,7 @@ func (b *Bcnmy) GetProxyContracts() (*GetProxyContractsResponse, error) {
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
