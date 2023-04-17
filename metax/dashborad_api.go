@@ -95,7 +95,7 @@ func (b *Bcnmy) CreateDapp(data *CreateDappRequest) (*CreateDappResponse, error)
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -132,7 +132,7 @@ func (b *Bcnmy) AddContract(data *AddContractRequest) (*GeneralResponse, error) 
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -168,7 +168,7 @@ func (b *Bcnmy) AddMethod(data *AddMethodRequest) (*AddMethodResponse, error) {
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }

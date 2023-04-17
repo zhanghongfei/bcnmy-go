@@ -82,7 +82,7 @@ func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataR
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -115,7 +115,7 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }
@@ -144,7 +144,7 @@ func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
 		}
 		return resp, nil
 	case err := <-errorCh:
-		b.logger.WithError(err).Error(err.Error())
+		b.logger.Error(err.Error())
 		return nil, err
 	}
 }

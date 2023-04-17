@@ -38,9 +38,10 @@ type MetaTxRequest struct {
 }
 
 type MetaTxResponse struct {
-	TxHash common.Hash `json:"txHash"`
-	Log    string      `json:"log"`
-	Flag   int         `json:"flag"`
+	TxHash  common.Hash `json:"txHash"`
+	Log     string      `json:"log"`
+	Flag    int         `json:"flag"`
+	Message string      `json:"message"`
 }
 
 func (m *MetaTxMessage) TypedData() apitypes.TypedDataMessage {
@@ -70,7 +71,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	}
 	req, err := http.NewRequest(http.MethodPost, MetaTxNativeURL, bytes.NewBuffer(body))
 	if err != nil {
-		b.logger.WithError(err).Error("SendMetaNativeTx NewRequest failed")
+		b.logger.Error("SendMetaNativeTx NewRequest failed")
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
@@ -84,8 +85,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 			return nil, fmt.Errorf("MetaAPI failed")
 		}
 		if resp.TxHash == common.HexToHash("0x0") {
-			err := fmt.Errorf("%v", resp)
-			b.logger.WithError(err).Error("TxHash is 0x0")
+			err := fmt.Errorf("%s", resp.Message)
 			return nil, err
 		}
 		return resp, nil
@@ -176,13 +176,13 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
-		b.logger.WithError(err).Errorf("Transaction failed: %v", err)
+		b.logger.Errorf("Transaction failed: %v", err)
 		return nil, nil, err
 	}
 
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 	if err != nil {
-		b.logger.WithError(err).Errorf("Checking TransactionByHash failed: %v", err)
+		b.logger.Errorf("Checking TransactionByHash failed: %v", err)
 		return nil, nil, err
 	}
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
@@ -203,12 +203,12 @@ func (b *Bcnmy) BuildTransactParams(metaTxMessage *MetaTxMessage, typedDataHash 
 	}
 	hash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
-		b.logger.WithError(err).Errorf("HashStruct failed to hash typedData, %v", err)
+		b.logger.Errorf("HashStruct failed to hash typedData, %v", err)
 		return nil, err
 	}
 	if hash.String() != typedDataHash {
 		err := fmt.Errorf("Hash string not match parameter hash: %s typedDataHash %s", hash.String(), typedDataHash)
-		b.logger.WithError(err).Errorf("%v", err)
+		b.logger.Errorf("%v", err)
 		return nil, err
 	}
 
@@ -242,13 +242,13 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
-		b.logger.WithError(err).Errorf("Transaction failed: %v", err)
+		b.logger.Errorf("Transaction failed: %v", err)
 		return nil, nil, err
 	}
 
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 	if err != nil {
-		b.logger.WithError(err).Errorf("Checking TransactionByHash failed: %v", err)
+		b.logger.Errorf("Checking TransactionByHash failed: %v", err)
 		return nil, nil, err
 	}
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
