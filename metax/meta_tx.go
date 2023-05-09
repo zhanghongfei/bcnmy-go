@@ -42,6 +42,14 @@ type MetaTxResponse struct {
 	Log     string      `json:"log"`
 	Flag    int         `json:"flag"`
 	Message string      `json:"message"`
+	Error   string      `json:"error"`
+	Code    int         `json:"code"`
+	Limit   struct {
+		Type      int `json:"type"`
+		LimitLeft int `json:"limitLeft"`
+		ResetTime int `json:"resetTime"`
+	} `json:"limit"`
+	Allowed bool `json:"allowed"`
 }
 
 func (m *MetaTxMessage) TypedData() apitypes.TypedDataMessage {
