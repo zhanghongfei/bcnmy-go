@@ -93,8 +93,8 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 			return nil, fmt.Errorf("MetaAPI failed")
 		}
 		if resp.TxHash == common.HexToHash("0x0") {
-			err := fmt.Errorf("%s", resp.Message)
-			return nil, err
+			err := fmt.Errorf("Message: %s, Code: %s, Limit: %v", resp.Message, resp.Code, resp.Limit)
+			return resp, err
 		}
 		return resp, nil
 	case err := <-errorCh:
@@ -103,7 +103,7 @@ func (b *Bcnmy) SendMetaNativeTx(data *MetaTxRequest) (*MetaTxResponse, error) {
 	}
 }
 
-func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*types.Transaction, *types.Receipt, error) {
+func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}) (*MetaTxResponse, *types.Transaction, *types.Receipt, error) {
 	apiId, ok := b.apiID[method]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
@@ -185,16 +185,16 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
 		b.logger.Errorf("Transaction failed: %v", err)
-		return nil, nil, err
+		return resp, nil, nil, err
 	}
 
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 	if err != nil {
 		b.logger.Errorf("Checking TransactionByHash failed: %v", err)
-		return nil, nil, err
+		return resp, nil, nil, err
 	}
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
-	return tx, receipt, err
+	return resp, tx, receipt, err
 }
 
 func (b *Bcnmy) BuildTransactParams(metaTxMessage *MetaTxMessage, typedDataHash string) ([]byte, error) {
@@ -225,7 +225,7 @@ func (b *Bcnmy) BuildTransactParams(metaTxMessage *MetaTxMessage, typedDataHash 
 
 // / Backend using this method, handle frontend passing signature, MetaTxMessage and
 // / ForwardRequestType data Hash value
-func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*types.Transaction, *types.Receipt, error) {
+func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, metaTxMessage *MetaTxMessage, typedDataHash string) (*MetaTxResponse, *types.Transaction, *types.Receipt, error) {
 	apiId, ok := b.apiID[method]
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
@@ -251,16 +251,16 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	resp, err := b.SendMetaNativeTx(req)
 	if err != nil {
 		b.logger.Errorf("Transaction failed: %v", err)
-		return nil, nil, err
+		return resp, nil, nil, err
 	}
 
 	tx, _, err := b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
 	if err != nil {
 		b.logger.Errorf("Checking TransactionByHash failed: %v", err)
-		return nil, nil, err
+		return resp, nil, nil, err
 	}
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
-	return tx, receipt, err
+	return resp, tx, receipt, err
 }
 
 func (b *Bcnmy) Pack(method string, params ...interface{}) ([]byte, error) {
