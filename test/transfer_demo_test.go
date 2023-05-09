@@ -37,9 +37,9 @@ func TestTransferDemo(t *testing.T) {
 		TxGas:         150000,
 		TokenGasPrice: "0",
 		BatchId:       big.NewInt(0),
-		BatchNonce:    big.NewInt(6),
-		Deadline:      big.NewInt(1681805460),
-		Data:          "0xbeabacc80000000000000000000000006a22dda833c14ca6189f32e0dbcdf41ac2a3c951000000000000000000000000c015fb756fd4d49c6280eca2d47df30e8f6d083100000000000000000000000000000000000000000000000000000000000186a0",
+		BatchNonce:    big.NewInt(13),
+		Deadline:      big.NewInt(1683630490),
+		Data:          "0x71234eb00000000000000000000000006a22dda833c14ca6189f32e0dbcdf41ac2a3c951000000000000000000000000c015fb756fd4d49c6280eca2d47df30e8f6d083100000000000000000000000000000000000000000000000000000000000186a000000000000000000000000000000000000000000000000000000000000186a0000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000645a299a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001bad55851ffb8bc0549bb7b6abf5ffa1676a0049eb7d8550d702a2d14f6e4522ef583bd957b462b550621bc762b52df9a7cbb48b36b4ff4da7dc168e3c447dff56",
 	}
 
 	typedData := apitypes.TypedData{
@@ -54,16 +54,17 @@ func TestTransferDemo(t *testing.T) {
 		Message: metaTxMessage.TypedData(),
 	}
 	typedDataHash, _ := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
-	signature := hexutil.MustDecode("0x233a0b8dfdb7487848e5e2ca43f5c3eec1c46917b2346bbcb94e4c9707c672317432c0fb6dba05b8bf28c95edd1c82b3e4153d179e60091470e1b43be087b71d1c")
+	signature := hexutil.MustDecode("0x6038d766c89900874f7a25cfa590ef305fcd2dd3d6985a4efdb8d4f4204cbb02596d00c9534bfa2f8572638076ca36f97f6b6ca57176a4af65c858c4e228ecb71b")
 	fmt.Println(signature)
-	txn, _, err := b.EnhanceTransact(
+	resp, txn, _, err := b.EnhanceTransact(
 		common.HexToAddress("0xD1cc56810a3947d1D8b05448afB9889c6cFCF0F1").Hex(),
-		"transfer",
+		"permitEIP2612AndTransfer",
 		signature,
 		metaTxMessage,
 		typedDataHash.String(),
 	)
 	assert.Nil(t, err)
+	assert.NotNil(t, resp)
 	assert.NotNil(t, txn)
 	fmt.Println(txn)
 }

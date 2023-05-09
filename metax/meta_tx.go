@@ -108,12 +108,12 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	funcSig, err := b.abi.Pack(method, params...)
 	if err != nil {
 		b.logger.WithError(err).Error("Abi Pack failed")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	callMsg := ethereum.CallMsg{
@@ -128,12 +128,12 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	estimateGas, err := b.ethClient.EstimateGas(b.ctx, callMsg)
 	if err != nil {
 		b.logger.WithError(err).Error("EstimateGas failed")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	batchNonce, err := b.trustedForwarder.Contract.GetNonce(&callOpts, signer.Address, b.batchId)
 	if err != nil {
 		b.logger.WithError(err).Errorf("GetNonce from %s failed", b.batchId)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	metaTxMessage := &MetaTxMessage{
@@ -162,13 +162,13 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 	signature, err := signer.SignTypedData(typedData)
 	if err != nil {
 		b.logger.WithError(err).Error("Signer signTypeData failed")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	domainSeparator, err := typedData.HashStruct(EIP712DomainType, typedData.Domain.Map())
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	req := &MetaTxRequest{
@@ -230,12 +230,12 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 	if !ok {
 		err := fmt.Errorf("ApiId %s not found for %s", apiId.ID, method)
 		b.logger.Error(err.Error())
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	domainSeparator, err := b.BuildTransactParams(metaTxMessage, typedDataHash)
 	if err != nil {
 		b.logger.WithError(err).Error("EIP712Domain Separator hash failed")
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	req := &MetaTxRequest{
 		From:  from,
