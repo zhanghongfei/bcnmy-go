@@ -19,6 +19,10 @@ const (
 	UserLimitURL               = "https://data.biconomy.io/api/v1/dapp/user-limit"
 	GasTankBalanceURL          = "https://data.biconomy.io/api/v1/dapp/gas-tank-balance"
 	CheckLimitURL              = "https://api.biconomy.io/api/v1/dapp/checkLimits"
+
+	// backend
+	BackendLoginURL = "https://dashboard-backend.prod.biconomy.io/api/v1/user/login"
+	BackendDappURL  = "https://dashboard-backend.prod.biconomy.io/api/v1/dapp"
 )
 
 const (
