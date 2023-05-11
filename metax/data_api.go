@@ -44,15 +44,15 @@ type UserLimitResponse struct {
 	} `json:"userLimitData"`
 }
 
-type GasTankBalanceResponse struct {
-	GeneralResponse
-	DappGasTankData struct {
-		EffectiveBalanceInWei          *big.Int `json:"effectiveBalanceInWei"`
-		EffectiveBalanceInStandardForm string   `json:"effectiveBalanceInStandardForm"`
-		IsBelowThreshold               bool     `json:"isBelowThreshold"`
-		IsInGracePeriod                bool     `json:"isInGracePeriod"`
-	} `json:"dappGasTankData"`
-}
+//type GasTankBalanceResponse struct {
+//GeneralResponse
+//DappGasTankData struct {
+//EffectiveBalanceInWei          *big.Int `json:"effectiveBalanceInWei"`
+//EffectiveBalanceInStandardForm string   `json:"effectiveBalanceInStandardForm"`
+//IsBelowThreshold               bool     `json:"isBelowThreshold"`
+//IsInGracePeriod                bool     `json:"isInGracePeriod"`
+//} `json:"dappGasTankData"`
+//}
 
 func (b *Bcnmy) GetUniqueUserData(data *UniqueUserDataRequest) (*UniqueUserDataResponse, error) {
 	responseCh := make(chan interface{}, 1)
@@ -120,31 +120,34 @@ func (b *Bcnmy) GetUserLimit(data *UserLimitRequest) (*UserLimitResponse, error)
 	}
 }
 
-func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
-	responseCh := make(chan interface{}, 1)
-	errorCh := make(chan error)
-	defer close(errorCh)
-	defer close(responseCh)
+/// always returns 401 UnAuthorized bad code, remove but mark it.
+//func (b *Bcnmy) GetGasTankBalance() (*GasTankBalanceResponse, error) {
+//responseCh := make(chan interface{}, 1)
+//errorCh := make(chan error)
+//defer close(errorCh)
+//defer close(responseCh)
 
-	req, err := http.NewRequest(http.MethodGet, UserLimitURL, nil)
-	if err != nil {
-		b.logger.WithError(err).Error("GetGasTankBalance NewRequest failed")
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("authToken", b.authToken)
-	req.Header.Set("apiKey", b.apiKey)
-	var resp GasTankBalanceResponse
-	b.asyncHttpx(req, &resp, errorCh, responseCh)
-	select {
-	case ret := <-responseCh:
-		resp, ok := ret.(*GasTankBalanceResponse)
-		if !ok {
-			return nil, fmt.Errorf("UniqueUserData failed")
-		}
-		return resp, nil
-	case err := <-errorCh:
-		b.logger.Error(err.Error())
-		return nil, err
-	}
-}
+//req, err := http.NewRequest(http.MethodGet, GasTankBalanceURL, nil)
+//if err != nil {
+//b.logger.WithError(err).Error("GetGasTankBalance NewRequest failed")
+//return nil, err
+//}
+//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+//fmt.Println(b.authToken)
+//fmt.Println(b.apiKey)
+//req.Header.Set("authToken", b.authToken)
+//req.Header.Set("apiKey", b.apiKey)
+//var resp GasTankBalanceResponse
+//b.asyncHttpx(req, &resp, errorCh, responseCh)
+//select {
+//case ret := <-responseCh:
+//resp, ok := ret.(*GasTankBalanceResponse)
+//if !ok {
+//return nil, fmt.Errorf("GasTankBalance failed")
+//}
+//return resp, nil
+//case err := <-errorCh:
+//b.logger.Error(err.Error())
+//return nil, err
+//}
+//}

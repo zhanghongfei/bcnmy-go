@@ -80,6 +80,8 @@ type Data struct {
 }
 
 type Dapp struct {
+	APIKey                    string    `json:"apiKey"`
+	FundingKey                int       `json:"fundingKey"`
 	NetworkId                 string    `json:"networkId"`
 	DappName                  string    `json:"dappName"`
 	DappLimit                 DappLimit `json:"dappLimit"`
@@ -174,4 +176,18 @@ func (b *Bcnmy) GetBackendDapps() (*DappResponse, error) {
 		resp, err = b.BackendDappList()
 	}
 	return resp, err
+}
+
+func (b *Bcnmy) GetGasTankEffectiveBalance() (*big.Int, error) {
+	resp, err := b.GetBackendDapps()
+	if err != nil {
+		b.logger.Errorf("GetGasTankEffectiveBalance failed")
+		return nil, err
+	}
+	for _, dapp := range resp.Data.Dapps {
+		if dapp.APIKey == b.apiKey {
+			return dapp.EffectiveBalance, nil
+		}
+	}
+	return nil, fmt.Errorf("Cannot get this gasTank balance")
 }
