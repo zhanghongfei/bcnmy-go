@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"net/http/cookiejar"
 	"strings"
 	"time"
 
@@ -42,6 +43,11 @@ type Bcnmy struct {
 		Address  common.Address
 		Contract *forwarder.Forwarder
 	}
+
+	// backend config
+	email             string
+	password          string
+	backendHttpClient *http.Client
 }
 
 func NewBcnmy(httpRpc string, apiKey string, timeout time.Duration) (*Bcnmy, error) {
@@ -131,4 +137,19 @@ func (b *Bcnmy) WithFieldTimeout(timeout time.Duration) *Bcnmy {
 
 func (b *Bcnmy) GetAuthorization() string {
 	return fmt.Sprintf("User %s", b.authToken)
+}
+
+func (b *Bcnmy) WithBackend(email string, password string, timeout time.Duration) error {
+	b.email = email
+	b.password = password
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return err
+	}
+	b.backendHttpClient = &http.Client{
+		Jar:     jar,
+		Timeout: timeout,
+	}
+	return nil
 }
