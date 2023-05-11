@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	DappURL                    = "https://api.biconomy.io/api/v1/dapp"
 	MetaAPIURL                 = "https://api.biconomy.io/api/v1/meta-api"
 	MetaTxNativeURL            = "https://api.biconomy.io/api/v2/meta-tx/native"
 	CreateDappPublicURL        = "https://api.biconomy.io/api/v1/dapp/public-api/create-dapp"
