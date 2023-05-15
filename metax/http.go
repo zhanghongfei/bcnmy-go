@@ -40,11 +40,11 @@ func (b *Bcnmy) backendAsyncHttpx(req *http.Request, resp interface{}, errorCh c
 			return
 		}
 		defer res.Body.Close()
-		replyData, err := io.ReadAll(res.Body)
 		if res.StatusCode != 200 {
 			errorCh <- fmt.Errorf("%v", res.StatusCode)
+			return
 		}
-
+		replyData, err := io.ReadAll(res.Body)
 		if err != nil {
 			b.logger.WithError(err).Error("io read request body failed")
 			errorCh <- err
