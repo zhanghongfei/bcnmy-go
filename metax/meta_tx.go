@@ -45,9 +45,9 @@ type MetaTxResponse struct {
 	Error   string      `json:"error"`
 	Code    int         `json:"code"`
 	Limit   struct {
-		Type      int `json:"type"`
-		LimitLeft int `json:"limitLeft"`
-		ResetTime int `json:"resetTime"`
+		Type      int     `json:"type"`
+		LimitLeft float32 `json:"limitLeft"`
+		ResetTime int64   `json:"resetTime"`
 	} `json:"limit"`
 	Allowed bool `json:"allowed"`
 }

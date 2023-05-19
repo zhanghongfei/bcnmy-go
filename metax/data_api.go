@@ -31,11 +31,11 @@ type UserLimitResponse struct {
 	GeneralResponse
 	UserLimitData struct {
 		LimitLeft struct {
-			SignerAddress        string `json:"signerAddress"`
-			TransactionLimitLeft int    `json:"transactionLimitLeft"`
-			TransactionCount     int    `json:"transactionCount"`
-			AreLimitsConsumed    bool   `json:"areLimitsConsumed"`
-			UserTransactionLimit int    `json:"userTransactionLimit"`
+			SignerAddress        string  `json:"signerAddress"`
+			TransactionLimitLeft float32 `json:"transactionLimitLeft"`
+			TransactionCount     int     `json:"transactionCount"`
+			AreLimitsConsumed    bool    `json:"areLimitsConsumed"`
+			UserTransactionLimit int     `json:"userTransactionLimit"`
 		} `json:"limitLeft"`
 		LimitType        string   `json:"limitType"`
 		LimitStartTime   *big.Int `json:"limitStartTime"`
