@@ -188,21 +188,21 @@ func (b *Bcnmy) RawTransact(signer *Signer, method string, params ...interface{}
 		return resp, nil, nil, err
 	}
 
-    var tx *types.Transaction
-    retries := 5
-    for {
-        var err error
-        retries -= 1
-        tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
-        if err != nil {
-            b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
-        } else {
-            break
-        }
-        if retries < 0 && err != nil {
-            return resp, nil, nil, err
-        }
-    }
+	var tx *types.Transaction
+	retries := 5
+	for {
+		var err error
+		retries -= 1
+		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
+		if err != nil {
+			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
+		} else {
+			break
+		}
+		if retries < 0 && err != nil {
+			return resp, nil, nil, err
+		}
+	}
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
 	return resp, tx, receipt, err
 }
@@ -264,21 +264,21 @@ func (b *Bcnmy) EnhanceTransact(from string, method string, signature []byte, me
 		return resp, nil, nil, err
 	}
 
-    var tx *types.Transaction
-    retries := 5
-    for {
-        var err error
-        retries -= 1
-        tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
-        if err != nil {
-            b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
-        } else {
-            break
-        }
-        if retries < 0 && err != nil {
-            return resp, nil, nil, err
-        }
-    }
+	var tx *types.Transaction
+	retries := 5
+	for {
+		var err error
+		retries -= 1
+		tx, _, err = b.ethClient.TransactionByHash(b.ctx, resp.TxHash)
+		if err != nil {
+			b.logger.Errorf("Checking TransactionByHash failed: %v, retries: %v", err, retries)
+		} else {
+			break
+		}
+		if retries < 0 && err != nil {
+			return resp, nil, nil, err
+		}
+	}
 
 	receipt, err := bind.WaitMined(context.Background(), b.ethClient, tx)
 	return resp, tx, receipt, err
